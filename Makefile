@@ -43,6 +43,13 @@ networks.libsonnet = echo '{'; $(foreach _, $(oxa.ips), echo '$_: import "$_.oxa
 $(tmp)/networks.libsonnet: $(self); ($($(@F))) | jsonnet fmt - > $@
 
 ips := $(out)/ips.js
-$(ips): ips.jsonnet $(oxa.ips.js) $(tmp)/networks.libsonnet; $< --ext-code-file 'networks=$(tmp)/networks.libsonnet' | jq . > $@
+ips.js  = $< --ext-code-file 'networks=$(tmp)/networks.libsonnet' | jq . > $(tmp)/tmp.js &&
+ips.js += cp --backup=numbered $(tmp)/tmp.js $@
+$(ips): ips.jsonnet $(oxa.ips.js) $(tmp)/networks.libsonnet; $($(@F))
 
 main: $(ips)
+
+previous != ls -t $(ips).~*~ | head -1
+diff:; diff $(previous) $(ips)
+
+.PHONY: top main diff

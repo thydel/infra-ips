@@ -28,9 +28,6 @@ pretty += /}, *$$/ { gsub(/ +/, " "); print; print "\n"; next }
 pretty += /^ {$(call depth, $1)}{$$/ { print; next }
 pretty += { gsub(/ +/, " "); print }
 
-csvtomd := ~/.local/bin/csvtomd
-pip3    := /usr/bin/pip3
-
 yml2js = < $< python -c '$(yaml2json.py)' | awk '$(call pretty, 2)' > $@
 
 oxa.networks := $(wildcard oxa/*.oxa.yml)
@@ -46,10 +43,27 @@ ips := $(out)/ips.js
 ips.js  = $< --ext-code-file 'networks=$(tmp)/networks.libsonnet' | jq . > $(tmp)/tmp.js &&
 ips.js += cp --backup=numbered $(tmp)/tmp.js $@
 $(ips): ips.jsonnet $(oxa.ips.js) $(tmp)/networks.libsonnet; $($(@F))
+ips: $(ips)
 
-main: $(ips)
+mds.js := $(filter $(tmp)/public%, $(oxa.ips.js))
+mds.csv := $(mds.js:$(tmp)/%.js=$(out)/%.csv)
+mds.md := $(mds.csv:%.csv=%.md)
+mds: $(mds.csv) $(mds.md)
+
+csvtomd := ~/.local/bin/csvtomd
+pip3    := /usr/bin/pip3
+
+$(out)/%.csv: csv.jq $(tmp)/%.js; $^ > $@
+$(out)/%.md: $(csvtomd) $(out)/%.csv; $^ > $@
+
+$(csvtomd): $(pip3); $< install $(@F)
+
+$(pip3) := python3-pip
+$(pip3):; sudo aptitude install $($@))
+
+main: ips mds
 
 previous != ls -t $(ips).~*~ | head -1
 diff:; diff $(previous) $(ips)
 
-.PHONY: top main diff
+.PHONY: top main ips mds diff

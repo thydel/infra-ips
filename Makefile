@@ -40,7 +40,7 @@ oxa.ips.js := $(oxa.ips:%=$(tmp)/%.oxa.js)
 $(tmp)/%.js: oxa/%.yml; $(yml2js)
 
 networks.libsonnet = echo '{'; $(foreach _, $(oxa.ips), echo '$_: import "$_.oxa.js",';) echo '}';
-$(tmp)/networks.libsonnet: $(self); ($($(@F))) | jsonnet fmt - > $@
+$(tmp)/networks.libsonnet: $(self) $(oxa.networks); ($($(@F))) | jsonnet fmt - > $@
 
 ips := $(out)/ips.js
 ips.js  = $< --ext-code-file 'networks=$(tmp)/networks.libsonnet' | jq . > $(tmp)/tmp.js &&

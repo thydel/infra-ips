@@ -7,6 +7,8 @@ top:; @date
 
 self := $(lastword $(MAKEFILE_LIST))
 
+site := oxa
+
 tmp := tmp
 out := out
 dirs := $(tmp) $(out)
@@ -28,13 +30,26 @@ pretty += /}, *$$/ { gsub(/ +/, " "); print; print "\n"; next }
 pretty += /^ {$(call depth, $1)}{$$/ { print; next }
 pretty += { gsub(/ +/, " "); print }
 
-yml2js = < $< python -c '$(yaml2json.py)' | awk '$(call pretty, 2)' > $@
+yml2js = < $< python -c '$(yaml2json.py)'
+yml2js-pretty = $(yml2js) | awk '$(call pretty, 2)' > $@
 
 oxa.networks := $(wildcard oxa/*.oxa.yml)
 oxa.ips := $(oxa.networks:oxa/%.oxa.yml=%)
 oxa.ips.js := $(oxa.ips:%=$(tmp)/%.oxa.js)
 
-$(tmp)/%.js: oxa/%.yml; $(yml2js)
+$(tmp)/%.js: oxa/%.yml; $(yml2js-pretty)
+
+####
+
+networks := $(site)/networks.yml
+$(networks).jq := { site, networks }
+
+$(tmp)/networks.js: $(site)/networks.yml $(self); $(yml2js) | jq '${$<.jq}' > $@
+$(out)/networks.js: networks.jsonnet $(tmp)/networks.js; $< > $(tmp)/tmp.js && cp --backup=numbered $(tmp)/tmp.js $@
+
+networks: $(out)/networks.js
+
+####
 
 networks.libsonnet = echo '{'; $(foreach _, $(oxa.ips), echo '$_: import "$_.oxa.js",';) echo '}';
 $(tmp)/networks.libsonnet: $(self) $(oxa.networks); ($($(@F))) | jsonnet fmt - > $@
@@ -61,9 +76,9 @@ $(csvtomd): $(pip3); $< install $(@F)
 $(pip3) := python3-pip
 $(pip3):; sudo aptitude install $($@))
 
-main: ips mds
+main: networks ips mds
 
-previous != ls -t $(ips).~*~ | head -1
+diff: previous != ls -t $(ips).~*~ 2> /dev/null | head -1
 diff:; diff $(previous) $(ips)
 
-.PHONY: top main ips mds diff
+.PHONY: top main networks ips mds diff

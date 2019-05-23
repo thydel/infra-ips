@@ -8,7 +8,12 @@ local extract(o, f) = { [if f in o[k] then k]: o[k][f] for k in std.objectFields
 local hide(l, k = 'hide') = std.filter(function(o) !(k in o), l);
 
 local expand(lo, lk) = {
-  index: { [k]: { [o[k]]: o for o in lo } for k in lk },
+  index: { [k]: { [std.toString(o[k])]: o for o in lo } for k in lk },
+  list: { [k]: values(lo, k) for k in lk }
+};
+
+local expandPrune(lo, lk) = {
+  index: { [k]: { [std.toString(o[k])]: std.prune(std.mapWithKey(function(kk, v) if kk != k then v, o)) for o in lo } for k in lk },
   list: { [k]: values(lo, k) for k in lk }
 };
 
@@ -20,5 +25,6 @@ local mwk(f, l) = std.mapWithKey(function(_, v) f(v), l);
   extract:: extract,
   hide:: hide,
   expand:: expand,
+  expandPrune:: expandPrune,
   mwk:: mwk,
 }

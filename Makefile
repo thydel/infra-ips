@@ -30,21 +30,21 @@ pretty += /}, *$$/ { gsub(/ +/, " "); print; print "\n"; next }
 pretty += /^ {$(call depth, $1)}{$$/ { print; next }
 pretty += { gsub(/ +/, " "); print }
 
-yml2js = < $< python -c '$(yaml2json.py)'
+yml2js = python -c '$(yaml2json.py)'
 yml2js-pretty = $(yml2js) | awk '$(call pretty, 2)' > $@
 
 oxa.networks := $(wildcard oxa/*.oxa.yml)
 oxa.ips := $(oxa.networks:oxa/%.oxa.yml=%)
 oxa.ips.js := $(oxa.ips:%=$(tmp)/%.oxa.js)
 
-$(tmp)/%.js: oxa/%.yml; $(yml2js-pretty)
+$(tmp)/%.js: oxa/%.yml; < $< $(yml2js-pretty)
 
 ####
 
 networks := $(site)/networks.yml
 $(networks).jq := { site, networks }
 
-$(tmp)/networks.js: $(site)/networks.yml $(self); $(yml2js) | jq '${$<.jq}' > $@
+$(tmp)/networks.js: $(site)/networks.yml $(self); < $< $(yml2js) | jq '$($<.jq)' > $@
 $(out)/networks.js: networks.jsonnet $(tmp)/networks.js; $< > $(tmp)/tmp.js && cp --backup=numbered $(tmp)/tmp.js $@
 
 networks: $(out)/networks.js

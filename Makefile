@@ -49,13 +49,14 @@ networks := $(out)/networks.js
 
 $(tmp)/networks.js: $(site)/networks.yml $(self); < $< $(yml2js) | jq '$($<.jq)' > $@
 $(out)/networks.js: networks.jsonnet $(tmp)/networks.js; $< > $(diffable)
+networks: $(networks)
 
-networks: $(out)/networks.js
+###
 
-legacy/networks.js: networks-legacy.jsonnet $(out)/networks.js $(self); $< > $(diffable)
-legacy/ips.js: ips-legacy.jsonnet $(out)/networks.js $(out)/ips.js $(self); $< > $(diffable)
-
-legacy := legacy/networks.js legacy/ips.js
+legacy := legacy/ips.js legacy/networks.js
+legacy/networks.js: $(out)/networks.js
+legacy/ips.js: $(out)/networks.js $(out)/ips.js
+$(legacy): legacy/%.js : %-legacy.jsonnet $(self); $< > $(diffable)
 legacy: $(legacy)
 
 ####

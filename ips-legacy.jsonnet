@@ -2,6 +2,7 @@
 
 local networks = import 'out/networks.js';
 local ips = import 'out/ips.js';
+local serial = import 'out/serial.js';
 
 local nets = networks.list.name;
 local networks_ip = { [net]: ips.index[net].name for net in nets };
@@ -14,6 +15,7 @@ local networks_cidr = {
 {
   networks_ip_list: { [net]: ips.list[net] for net in nets },
   networks_ip: networks_cidr,
+  networks_serial: serial,
   networks_alias: { [net]: ips.index[net].alias for net in nets if 'alias' in ips.index[net] },
   Ips: networks_ip,
 }

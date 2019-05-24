@@ -48,16 +48,8 @@ $(networks.src).jq := { site, networks } | walk(if type == "object" then with_en
 networks := $(out)/networks.js
 
 $(tmp)/networks.js: $(site)/networks.yml $(self); < $< $(yml2js) | jq '$($<.jq)' > $@
-$(out)/networks.js: networks.jsonnet $(tmp)/networks.js; $< > $(diffable)
+$(networks): networks.jsonnet $(tmp)/networks.js; $< > $(diffable)
 networks: $(networks)
-
-###
-
-legacy := legacy/ips.js legacy/networks.js
-legacy/networks.js: $(out)/networks.js
-legacy/ips.js: $(out)/networks.js $(out)/ips.js
-$(legacy): legacy/%.js : %-legacy.jsonnet $(self); $< > $(diffable)
-legacy: $(legacy)
 
 ####
 
@@ -69,6 +61,28 @@ ips.js  = $< --ext-code-file 'networks=$(tmp)/networks.libsonnet' | jq . > $(tmp
 ips.js += cp --backup=numbered $(tmp)/tmp.js $@
 $(ips): ips.jsonnet $(oxa.ips.js) $(tmp)/networks.libsonnet; $($(@F))
 ips: $(ips)
+
+####
+
+serial := $(out)/serial.js
+serial.jq := .list.name | join("\n")
+serial.js  = (echo '{';
+serial.js += jq -r '$(serial.jq)' $<
+serial.js += | xargs -i stat -c '{}: %Y,' oxa/{}.oxa.yml;
+serial.js += echo '}')
+serial.js += | jsonnet /dev/stdin
+$(serial): $(networks) $(self); $($(@F)) > $(diffable)
+serial: $(serial)
+
+###
+
+legacy := legacy/ips.js legacy/networks.js
+legacy/networks.js: $(networks)
+legacy/ips.js: $(networks) $(ips) $(serial)
+$(legacy): legacy/%.js : %-legacy.jsonnet $(self); $< > $(diffable)
+legacy: $(legacy)
+
+####
 
 mds.js := $(filter $(tmp)/public%, $(oxa.ips.js))
 mds.csv := $(mds.js:$(tmp)/%.js=$(out)/%.csv)
@@ -89,7 +103,7 @@ $(pip3):; sudo aptitude install $($@))
 main: networks ips legacy mds
 
 diff/%:; p=$$(ls -t $*.~*~ 2> /dev/null | head -1); test $$p && diff $$p $* || true
-diff := $(networks) $(ips) $(legacy)
+diff := $(networks) $(ips) $(legacy) $(serial)
 diff: $(diff:%=diff/%)
 
 .PHONY: top main networks ips mds legacy diff

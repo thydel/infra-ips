@@ -11,7 +11,7 @@ site := oxa
 
 tmp := tmp
 out := out
-dirs := $(tmp) $(out)
+dirs := $(tmp) $(out) legacy
 $(self): $(dirs:%=%/.stone)
 %/.stone:; mkdir -p $(@D); touch $@
 
@@ -39,15 +39,24 @@ oxa.ips.js := $(oxa.ips:%=$(tmp)/%.oxa.js)
 
 $(tmp)/%.js: oxa/%.yml; < $< $(yml2js-pretty)
 
+diffable = $(tmp)/tmp.js && cp --backup=numbered $(tmp)/tmp.js $@
+
 ####
 
-networks := $(site)/networks.yml
-$(networks).jq := { site, networks }
+networks.src := $(site)/networks.yml
+$(networks.src).jq := { site, networks } | walk(if type == "object" then with_entries(.key |= sub("^id$$"; "cidr")) else . end)
+networks := $(out)/networks.js
 
 $(tmp)/networks.js: $(site)/networks.yml $(self); < $< $(yml2js) | jq '$($<.jq)' > $@
-$(out)/networks.js: networks.jsonnet $(tmp)/networks.js; $< > $(tmp)/tmp.js && cp --backup=numbered $(tmp)/tmp.js $@
+$(out)/networks.js: networks.jsonnet $(tmp)/networks.js; $< > $(diffable)
 
 networks: $(out)/networks.js
+
+legacy/networks.js: networks-legacy.jsonnet $(out)/networks.js $(self); $< > $(diffable)
+legacy/ips.js: ips-legacy.jsonnet $(out)/networks.js $(out)/ips.js $(self); $< > $(diffable)
+
+legacy := legacy/networks.js legacy/ips.js
+legacy: $(legacy)
 
 ####
 
@@ -76,9 +85,10 @@ $(csvtomd): $(pip3); $< install $(@F)
 $(pip3) := python3-pip
 $(pip3):; sudo aptitude install $($@))
 
-main: networks ips mds
+main: networks ips legacy mds
 
-diff: previous != ls -t $(ips).~*~ 2> /dev/null | head -1
-diff:; diff $(previous) $(ips)
+diff/%:; p=$$(ls -t $*.~*~ 2> /dev/null | head -1); test $$p && diff $$p $* || true
+diff := $(networks) $(ips) $(legacy)
+diff: $(diff:%=diff/%)
 
-.PHONY: top main networks ips mds diff
+.PHONY: top main networks ips mds legacy diff

@@ -100,7 +100,8 @@ $(csvtomd): $(pip3); $< install $(@F)
 $(pip3) := python3-pip
 $(pip3):; sudo aptitude install $($@))
 
-main: networks ips legacy mds
+main: networks ips legacy mds .done
+.done:; touch $@
 
 diff/%:; p=$$(ls -t $*.~*~ 2> /dev/null | head -1); test $$p && diff $$p $* || true
 diff := $(networks) $(ips) $(legacy) $(serial)

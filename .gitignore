@@ -1,1 +1,8 @@
 *~
+private-repos.yml
+keys.yml
+ext
+.hide
+tmp
+out
+legacy

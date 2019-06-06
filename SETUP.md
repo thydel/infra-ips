@@ -32,3 +32,15 @@ get-priv-repos.yml -e dir=$(pwd)
 
 `get-priv-repos.yml` use `paths.yml` to access `private_repos_file`,
 `keys_file` and `workdir`.
+
+# Use data-ips
+
+```
+ln -s ext/ips/oxa
+```
+
+# Or use setup.mk
+
+```
+setup.mk
+```

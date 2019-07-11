@@ -8,6 +8,7 @@ top:; @date
 self := $(lastword $(MAKEFILE_LIST))
 
 site := oxa
+site := data-ips/oxa
 
 tmp := tmp
 out := out
@@ -33,11 +34,11 @@ pretty += { gsub(/ +/, " "); print }
 yml2js = python -c '$(yaml2json.py)'
 yml2js-pretty = $(yml2js) | awk '$(call pretty, 2)' > $@
 
-oxa.networks := $(wildcard oxa/*.oxa.yml)
-oxa.ips := $(oxa.networks:oxa/%.oxa.yml=%)
+oxa.networks := $(wildcard $(site)/*.oxa.yml)
+oxa.ips := $(oxa.networks:$(site)/%.oxa.yml=%)
 oxa.ips.js := $(oxa.ips:%=$(tmp)/%.oxa.js)
 
-$(tmp)/%.js: oxa/%.yml; < $< $(yml2js-pretty)
+$(tmp)/%.js: $(site)/%.yml; < $< $(yml2js-pretty)
 
 diffable = $(tmp)/tmp.js && cp --backup=numbered $(tmp)/tmp.js $@
 
@@ -68,7 +69,7 @@ serial := $(out)/serial.js
 serial.jq := .list.name | join("\n")
 serial.js  = (echo '{';
 serial.js += jq -r '$(serial.jq)' $<
-serial.js += | xargs -i stat -c '{}: %Y,' oxa/{}.oxa.yml;
+serial.js += | xargs -i stat -c '{}: %Y,' $(site)/{}.oxa.yml;
 serial.js += echo '}')
 serial.js += | jsonnet /dev/stdin
 $(serial): $(networks) $(self); $($(@F)) > $(diffable)
@@ -106,5 +107,7 @@ main: networks ips legacy mds .done
 diff/%:; p=$$(ls -t $*.~*~ 2> /dev/null | head -1); test $$p && diff $$p $* || true
 diff := $(networks) $(ips) $(legacy) $(serial)
 diff: $(diff:%=diff/%)
+
+clean:; @echo rm -r $(tmp) $(out)
 
 .PHONY: top main networks ips mds legacy diff

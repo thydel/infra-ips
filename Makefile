@@ -2,6 +2,7 @@
 
 MAKEFLAGS += -Rr
 SHELL != which bash
+SHELL += -o pipefail
 
 top:; @date
 

@@ -6,6 +6,7 @@ local permutKeyValue(o) = { [o[k]]: k for k in std.objectFields(o) };
 local extract(o, f) = { [if f in o[k] then k]: o[k][f] for k in std.objectFields(o) };
 
 local hide(l, k = 'hide') = std.filter(function(o) !(k in o), l);
+local show(l, k) = std.filter(function(o) (k in o), l);
 
 local expand(lo, lk) = {
   index: { [k]: { [std.toString(o[k])]: o for o in lo } for k in lk },
@@ -24,6 +25,7 @@ local mwk(f, l) = std.mapWithKey(function(_, v) f(v), l);
   permutKeyValue:: permutKeyValue,
   extract:: extract,
   hide:: hide,
+  show:: show,
   expand:: expand,
   expandPrune:: expandPrune,
   mwk:: mwk,

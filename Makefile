@@ -61,7 +61,7 @@ $(tmp)/networks.libsonnet: $(self) $(oxa.networks); ($($(@F))) | jsonnet fmt - >
 ips := $(out)/ips.js
 ips.js  = $< --ext-code-file 'networks=$(tmp)/networks.libsonnet' | jq . > $(tmp)/tmp.js &&
 ips.js += cp --backup=numbered $(tmp)/tmp.js $@
-$(ips): ips.jsonnet $(oxa.ips.js) $(tmp)/networks.libsonnet; $($(@F))
+$(ips): ips.jsonnet loc.libsonnet $(oxa.ips.js) $(tmp)/networks.libsonnet; $($(@F))
 ips: $(ips)
 
 ####

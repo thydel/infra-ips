@@ -100,7 +100,7 @@ $(out)/%.md: $(csvtomd) $(out)/%.csv; $^ > $@
 $(csvtomd): $(pip3); $< install $(@F)
 
 $(pip3) := python3-pip
-$(pip3):; sudo aptitude install $($@))
+$(pip3):; sudo aptitude install $($@)
 
 main: networks ips legacy mds .done
 .done:; touch $@

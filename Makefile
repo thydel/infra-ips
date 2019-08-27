@@ -50,7 +50,7 @@ $(networks.src).jq := { site, networks } | walk(if type == "object" then with_en
 networks := $(out)/networks.js
 
 $(tmp)/networks.js: $(site)/networks.yml $(self); < $< $(yml2js) | jq '$($<.jq)' > $@
-$(networks): networks.jsonnet $(tmp)/networks.js; $< > $(diffable)
+$(networks): networks.jsonnet $(tmp)/networks.js; ./$< > $(diffable)
 networks: $(networks)
 
 ####
@@ -59,7 +59,7 @@ networks.libsonnet = echo '{'; $(foreach _, $(oxa.ips), echo '$_: import "$_.oxa
 $(tmp)/networks.libsonnet: $(self) $(oxa.networks); ($($(@F))) | jsonnet fmt - > $@
 
 ips := $(out)/ips.js
-ips.js  = $< --ext-code-file 'networks=$(tmp)/networks.libsonnet' | jq . > $(tmp)/tmp.js &&
+ips.js  = ./$< --ext-code-file 'networks=$(tmp)/networks.libsonnet' | jq . > $(tmp)/tmp.js &&
 ips.js += cp --backup=numbered $(tmp)/tmp.js $@
 $(ips): ips.jsonnet loc.libsonnet $(oxa.ips.js) $(tmp)/networks.libsonnet; $($(@F))
 ips: $(ips)
@@ -81,7 +81,7 @@ serial: $(serial)
 legacy := legacy/ips.js legacy/networks.js
 legacy/networks.js: $(networks)
 legacy/ips.js: $(networks) $(ips) $(serial)
-$(legacy): legacy/%.js : %-legacy.jsonnet $(self); $< > $(diffable)
+$(legacy): legacy/%.js : %-legacy.jsonnet $(self); ./$< > $(diffable)
 legacy: $(legacy)
 
 ####
@@ -94,7 +94,7 @@ mds: $(mds.csv) $(mds.md)
 csvtomd := ~/.local/bin/csvtomd
 pip3    := /usr/bin/pip3
 
-$(out)/%.csv: csv.jq $(tmp)/%.js; $^ > $@
+$(out)/%.csv: csv.jq $(tmp)/%.js; ./$^ > $@
 $(out)/%.md: $(csvtomd) $(out)/%.csv; $^ > $@
 
 $(csvtomd): $(pip3); $< install $(@F)

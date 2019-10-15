@@ -1,19 +1,15 @@
-# Transform data-ips
-
-Get data-ips (see [SETUP](SETUP.md))
+# Use infra-data-ips as src
 
 ```
-setup.mk
+export GIT_SSH_COMMAND='ssh -i ~/.ssh/t.delamare@epiconcept.fr -F /dev/null';
+git clone git@github.com:Epiconcept-Paris/infra-data-ips.git -b master;
+make -C infra-data-ips install;
 ```
 
-And transform
+# Install generated data
 
 ```
-make
+export GIT_SSH_COMMAND='ssh -i ~/.ssh/t.delamare@epiconcept.fr -F /dev/null';
+git clone git@github.com:thydel/infra-ips.git -b master;
+make -C infra-ips install
 ```
-
-Will generate various ad hoc `json` file (mainly `ansible` variable files) from generic list of IP.
-
-# Example of generic data struct and transformation
-
-WIP.

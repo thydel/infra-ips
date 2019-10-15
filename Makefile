@@ -8,8 +8,9 @@ top:; @date
 
 self := $(lastword $(MAKEFILE_LIST))
 
-site := oxa
-site := data-ips/oxa
+include conf.mk
+
+site := $(src)/oxa/ips
 
 tmp := tmp
 out := out
@@ -102,13 +103,28 @@ $(csvtomd): $(pip3); $< install $(@F)
 $(pip3) := python3-pip
 $(pip3):; sudo aptitude install $($@)
 
-main: networks ips legacy mds .done
-.done:; touch $@
+main: networks ips legacy mds
 
 diff/%:; p=$$(ls -t $*.~*~ 2> /dev/null | head -1); test $$p && diff $$p $* || true
 diff := $(networks) $(ips) $(legacy) $(serial)
 diff: $(diff:%=diff/%)
 
-clean:; @echo rm -r $(tmp) $(out)
+clean:; @echo rm -r $(tmp) $(out) legacy
 
 .PHONY: top main networks ips mds legacy diff
+
+oxa := $(data)/oxa
+install.dirs := $(oxa)/legacy $(doc)
+
+install = install $< $@
+$(oxa)/legacy/%.js: legacy/%.js; $(install)
+$(oxa)/%.js: $(out)/%.js; $(install)
+$(doc)/%.md: $(out)/%.md; $(install)
+
+installed := $(networks:$(out)/%=$(oxa)/%)
+installed += $(ips:$(out)/%=$(oxa)/%)
+installed += $(mds.md:$(out)/%=$(doc)/%)
+installed += $(legacy:legacy/%=$(oxa)/legacy/%)
+
+install: $(install.dirs:%=%/.stone) $(installed)
+.PHONY: install

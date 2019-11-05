@@ -57,7 +57,7 @@ networks: $(networks)
 ####
 
 networks.libsonnet = echo '{'; $(foreach _, $(oxa.ips), echo '$_: import "$_.oxa.js",';) echo '}';
-$(tmp)/networks.libsonnet: $(self) $(oxa.networks); ($($(@F))) | jsonnet fmt - > $@
+$(tmp)/networks.libsonnet: $(self) $(oxa.networks); ($($(@F))) | jsonnetfmt - > $@
 
 ips := $(out)/ips.js
 ips.js  = ./$< --ext-code-file 'networks=$(tmp)/networks.libsonnet' | jq . > $(tmp)/tmp.js &&

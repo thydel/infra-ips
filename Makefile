@@ -10,7 +10,7 @@ self := $(lastword $(MAKEFILE_LIST))
 
 include conf.mk
 
-site := $(src)/oxa/ips
+site := $(dir.src)/oxa/ips
 
 tmp := tmp
 out := out
@@ -113,6 +113,8 @@ clean:; @echo rm -r $(tmp) $(out) legacy
 
 .PHONY: top main networks ips mds legacy diff
 
+ifdef OLD
+
 oxa := $(data)/oxa
 install.dirs := $(oxa)/legacy $(doc)
 
@@ -127,4 +129,25 @@ installed += $(mds.md:$(out)/%=$(doc)/%)
 installed += $(legacy:legacy/%=$(oxa)/legacy/%)
 
 install: $(install.dirs:%=%/.stone) $(installed)
-.PHONY: install
+
+else
+
+json := $(ips) $(networks)
+
+$(warning $(json))
+
+~ := install
+$~.lnk := $(dir.repo)/$(repo.name)
+$~.dir := $($~.lnk).$(repo.branch)
+$~.json := $(json:$(out)/%.js=$($~.dir)/%.json)
+$~.readme := $($~.dir)/README
+$~.files := $($~.json) $($~.readme)
+$($~.dir)/%.json: $(out)/%.js; install $< $@
+$($~.readme): $(self); echo "$$$(@F)" > $@
+$~: $(install.dir:%=%/.stone) $(install.files)
+
+link: install; ln -snf $(install.dir) $(install.lnk)
+
+endif
+
+.PHONY: install link

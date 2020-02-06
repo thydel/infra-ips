@@ -134,8 +134,6 @@ else
 
 json := $(ips) $(networks)
 
-$(warning $(json))
-
 ~ := install
 $~.lnk := $(dir.repo)/$(repo.name)
 $~.dir := $($~.lnk).$(repo.branch)

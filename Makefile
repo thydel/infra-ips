@@ -115,17 +115,17 @@ clean:; @echo rm -r $(tmp) $(out) legacy
 
 ifdef OLD
 
-oxa := $(data)/oxa
-install.dirs := $(oxa)/legacy $(doc)
+oxa := $(dir.data)/oxa
+install.dirs := $(oxa)/legacy $(dir.doc)
 
 install = install $< $@
 $(oxa)/legacy/%.js: legacy/%.js; $(install)
 $(oxa)/%.js: $(out)/%.js; $(install)
-$(doc)/%.md: $(out)/%.md; $(install)
+$(dir.doc)/%.md: $(out)/%.md; $(install)
 
 installed := $(networks:$(out)/%=$(oxa)/%)
 installed += $(ips:$(out)/%=$(oxa)/%)
-installed += $(mds.md:$(out)/%=$(doc)/%)
+installed += $(mds.md:$(out)/%=$(dir.doc)/%)
 installed += $(legacy:legacy/%=$(oxa)/legacy/%)
 
 install: $(install.dirs:%=%/.stone) $(installed)

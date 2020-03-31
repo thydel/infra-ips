@@ -113,6 +113,8 @@ clean:; @echo rm -r $(tmp) $(out) legacy
 
 .PHONY: top main networks ips mds legacy diff
 
+install-diff := $(MAKE) --no-print-directory -n install | sed 's/install/diff/'
+
 ifdef OLD
 
 oxa := $(dir.data)/oxa
@@ -129,6 +131,8 @@ installed += $(mds.md:$(out)/%=$(dir.doc)/%)
 installed += $(legacy:legacy/%=$(oxa)/legacy/%)
 
 install: $(install.dirs:%=%/.stone) $(installed)
+export OLD
+install-diff:; @$($@)
 
 else
 
@@ -146,6 +150,8 @@ $~: $(install.dir:%=%/.stone) $(install.files)
 
 link: install; ln -snf $(install.dir) $(install.lnk)
 
+install-diff:; @$($@)
+
 endif
 
-.PHONY: install link
+.PHONY: install install-diff link

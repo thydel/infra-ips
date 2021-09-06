@@ -23,7 +23,7 @@ $(self): $(dirs:%=%/.stone)
 
 indent := 2
 yaml2json.py := import sys, yaml, json;
-yaml2json.py += json.dump(yaml.load(sys.stdin), sys.stdout, indent=$(indent), default=str, sort_keys=True)
+yaml2json.py += json.dump(yaml.load(sys.stdin, Loader=yaml.FullLoader), sys.stdout, indent=$(indent), default=str, sort_keys=True)
 yaml2json_py := python -c '$(yaml2json.py)'
 
 depth = $(shell echo $$(($1 * $(indent))))
